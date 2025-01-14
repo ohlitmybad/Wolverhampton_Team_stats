@@ -1,0 +1,842 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>	
+  
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <title>Wolverhampton Football Stats and Visuals | DataMB</title>
+  <link rel="shortcut icon" type="image/x-icon" href="https://datamb.football/favicon.ico">
+  <meta name="description" content="Wolverhampton 2024/25 data profile compared to other teams in Europe's Top 7 Leagues. Check out Wolverhampton statistics with our radar chart and plots, or compare Wolverhampton to other teams using our data comparison tool.">
+  <meta property="og:image" content="https://datamb.football/vignettes/teamprofile.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@DataMB_">
+  <meta name="twitter:title" content="Wolverhampton | DataMB">
+  <meta name="twitter:image" content="https://datamb.football/vignettes/teamprofile.png">
+  <script>
+    (function() {
+        var width = window.innerWidth;
+        var viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+  if (width < 681) {
+          
+        var initialScale = width / 681;
+  viewportMeta.setAttribute('content', 'width=device-width, initial-scale=' + initialScale + ', user-scalable=no');
+  } else {
+              var fixedScale = 1;
+    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=' + fixedScale + ', user-scalable=no');
+  
+    }
+      } 
+  })();
+  </script>
+<link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+
+<style>
+  .radar-button:hover {
+
+background-color: #f0f0f0; /* Light grey background on hover */
+
+}
+
+.plot-button:hover {
+
+background-color: #f0f0f0; /* Light grey background on hover */
+
+}
+  
+  /* BASIC STYLE ELEMENTS BELOW */
+    
+    
+  svg text.label {
+      fill: #bcbcbc;
+    }
+  
+  
+  
+    td.black {
+      color: black !important;
+    }
+    td.red {
+      color: red !important;
+    }
+    td.green {
+      color: green !important;
+    }
+  text {
+    font-family: Arial;
+  }
+  
+  .result-color-blue {
+    color: #3062FB !important;
+    stroke: #3062FB;
+    fill: #3062FB;
+    fill-opacity: 0.02;
+  }
+  
+  
+  
+  .radar-button {
+    position:relative;
+    left:-5px;
+    align-items: center;
+    background-color: #FFFFFF;
+    border: 4px solid #135eb6; /* Add a border */
+    border-radius: 35px;
+    color: #0b57d0;
+    width: 145px;
+    height: 58px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  
+  }
+  
+  .plot-button {
+    position:relative;
+    left:40px;
+    top: -11px;
+    align-items: center;
+    background-color: #FFFFFF;
+    border: 4px solid #135eb6; /* Add a border */
+    border-radius: 35px;
+    color: #0b57d0;
+    width: 145px;
+    height: 58px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;  
+  }
+  
+  
+        
+  .metrics-table th {
+    background-color: #ececec;
+    color: #444444;
+    font-weight: bold;
+    padding: 9px;
+    text-align: left;
+  }
+  
+  .metrics-table td {
+    padding: 9px;
+    border: 1px solid #ccc;
+  }
+  
+  .metrics-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .metrics-table tr:hover {
+    background-color: #ddd;
+  }
+  .metrics-table tr:first-child td {
+    font-size: 20px;
+  }
+  
+
+  #output a {
+    text-decoration: none; /* Remove underlining */
+    color: #3062FB; /* Set link color to purple */
+  }
+  #metrics-table a {
+    text-decoration: none; /* Remove underlining */
+    color: purple; /* Set link color to purple */
+  }
+
+  
+
+  
+
+  /* FUNCTIONAL STYLE ELEMENTS BELOW */
+
+
+  
+  svg:nth-of-type(1) {
+  height: 485px;
+}
+  
+
+
+.metrics-table {
+    width: 520px;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    border-collapse: collapse;
+  }
+  
+    #output {  
+    background-color: #FFFFFF; /* Background color */
+    padding: 15px; /* Add some padding */
+    border: 4px solid #c4eed1; /* Add a border */
+    border-radius: 12px; /* Add rounded corners */
+    font-size: 17px; /* Set the font size */
+    width: 300px;
+    color: #333; /* Text color */
+    font-family: Arial, sans-serif; /* Choose a font-family */
+    text-align: center; /* Center-align text */
+    line-height: 1.5; /* Set line height */
+  }
+  
+  /* Ensure the container is centered and elements are responsive */
+.container {
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  justify-content: center;
+  align-items: center; /* Center elements horizontally */
+  width: 100%; /* Allow the container to take up full width */
+  margin: 0 auto; /* Center the container itself */
+}
+
+/* For rows that should have elements side by side */
+.desktop-row {
+  display: flex;
+  justify-content: center; /* Center the row contents */
+  align-items: flex-start; /* Align elements to the top, preventing height stretching */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  width: 100%;
+  margin: 20px 0;
+}
+
+.radar-wrapper {
+  position: relative;
+top: 45px;
+}
+
+.scatter-plot-wrapper {
+  position: relative;
+top: 22px;
+left: 42px;
+}
+
+/* Limit the width of individual elements and center them */
+.metric-table, .radar-wrapper, .scatter-plot-wrapper {
+  flex: 1;
+  min-width: 300px;
+  max-width: 550px; /* Ensure no element exceeds 485px */
+  margin: 0px 40px;
+  align-self: center; /* Ensure the element itself is centered */
+  text-align: center; /* Center text or content inside the div */
+}
+
+.output {
+  flex: 1;
+  max-width: 300px;
+    align-self: center; /* Ensure the element itself is centered */
+  text-align: center; /* Center text or content inside the div */
+}
+
+.scatter-plot {
+  max-height: 400px; /* Keep aspect ratio */
+  max-width: 100%; /* Ensure it scales down on smaller screens */
+}
+
+/* Limit the width of the radar SVG */
+.radar {
+  width: 485px;
+  height: auto; /* Keep aspect ratio */
+  max-width: 100%; /* Ensure it scales down on smaller screens */
+}
+
+/* Wrapper for radar and button */
+.radar-wrapper, .scatter-plot-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the content inside the wrapper */
+}
+
+/* Ensure the buttons are centered below their respective elements */
+.radar-button, .plot-button {
+  text-align: center; /* Ensure the buttons are centered */
+}
+
+/* Mobile-specific layout: Stack elements vertically */
+@media only screen and (max-width: 1048px) {
+  .desktop-row {
+    flex-direction: column; /* Stack elements vertically on smaller screens */
+  }
+
+
+    .metric-table, .radar-wrapper, .scatter-plot-wrapper, .output {
+
+  margin: 20px 40px;
+
+}
+
+.scatter-plot {
+  position: relative;
+  left: 20px;
+  max-height: 400px; /* Keep aspect ratio */
+  max-width: 115%; /* Ensure it scales down on smaller screens */
+}
+
+.scatter-plot-wrapper {
+
+top: 12px;
+left: -20px
+
+}
+.radar-wrapper {
+
+top: 0px;
+left: 10px
+
+}
+.plot-button {
+    position:relative;
+    left:30px;
+  }
+}
+
+  
+
+  /* IGNORE THESE STYLE ELEMENTS */
+
+  
+  .search-container {
+              position: relative;
+              display: inline-block;
+          }
+  
+          
+          #searchButton {
+      padding: 10px;
+      background-color: #0074d9;
+      color: #fff;
+      border: none;
+      width: 40px; /* Set the width and height to the same value for a round button */
+      height: 40px;
+      border-radius: 50%; /* Make the button round by setting border-radius to 50% of the size */
+      cursor: pointer;
+      font-size: 20px; /* Increase the text size */
+  }
+  
+  
+  .search-input-modal {
+      display: none;
+      position: fixed; /* Change this to "fixed" to cover the entire viewport */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7); /* Increase opacity for better obscuring */
+      z-index: 999; /* Ensure it's above other elements */
+  }
+  
+  .search-input-container {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 4px;
+      z-index: 1000; /* Make sure it's on top of the modal background */
+  }
+  
+          
+  #searchInput {
+              width: 340px;
+              padding: 12px;
+              border: 3px solid #ccc;
+              border-radius: 4px;
+              font-size: 19px;
+              outline: none;
+          }
+  
+          #autocompleteBox {
+              width: 360px;
+              max-height: 150px;
+              overflow-y: auto;
+              background-color: #fff;
+          }
+  
+  
+          #autocompleteBox ul {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+          }
+  
+          #autocompleteBox li {
+              margin: 0;
+              padding: 5px;
+          }
+  
+          #autocompleteBox {
+              line-height: 2; /* Adjust the value as needed to control line spacing */
+              text-align: center !important;
+  
+          }
+  
+          #autocompleteBox a {
+              text-decoration: none;
+              font-family: Arial, sans-serif;
+              text-align: center !important;
+              color: #333 !important;
+              cursor: pointer; /* Add pointer cursor style to the anchor element */
+          }
+  
+          #autocompleteBox li:hover {
+              background-color: #F0F0F0;
+          }
+  
+  
+  body {
+    margin: 0 auto;
+  }
+  
+  
+  body, html {
+  
+  background-color: #ffffff !important;
+  }
+  .header {
+    font-family: system-ui;
+    padding: 20px;
+    text-align: center;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  background: #ececec;
+  }
+  
+  .header .logo {
+    display: flex;
+    align-items: center;
+  }
+  
+  .header .logo img {
+    width: 40px;
+    height: 40px;
+  opacity: 0.84;
+  }
+  
+  .header .logo-text {
+    margin-left: 10px;
+    font-size: 20px;
+  color: #444444;
+    font-weight: 600;
+  }
+  
+  .header .navigation {
+    display: center;
+    align-items: center;
+    word-spacing: 1.3em; /* Adjust the spacing as needed */
+  }
+
+  @media only screen and (min-width: 1048px) {
+    .header .navigation a:first-child {
+      margin-left: 100px; /* Adjust the margin as needed */
+    }
+  }
+  
+  .header .button {
+    margin: 0 10px;
+    padding: 0px 20px;
+    color: #444444;
+    text-decoration: none;
+    border-radius: 0px;
+  font-size: 18px;
+  }
+  
+  header a {
+        color: #444444;
+        text-decoration: none;
+  
+      }
+  
+  .header .twitter-link svg {
+    width: 25px;
+    height: 24px;
+    fill: #444444;
+  }
+  
+  
+  #searchInput1 {
+  display: none;
+  }
+  
+  
+  
+  
+  #searchButton1 {
+    display: none;
+  
+  }
+  
+  
+  
+  #twitterSvg {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 25px !important;
+    height: 24px !important;
+  }
+  
+  
+  #select-league {
+    display: none;
+  }
+  
+  
+  #select-x,
+  #select-y {
+    display: none;
+  }
+  
+  
+  .footer {
+    font-family: system-ui;
+    background: #F2F2F2;
+    padding: 20px;
+    text-align: center;
+    color: #fff;
+  }
+  
+  .footer {
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  
+  .footer .logo {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .footer .description {
+    font-size: 20px;
+    margin-bottom: 0px;
+  color: black;
+  }
+  
+  .footer .info {
+    font-size: 16px;
+    opacity: 0.8;
+  }
+  
+  .footer .divider {
+    border: none;
+    border-bottom: 1px solid #fff;
+    margin: 25px 0;
+    opacity: 0.2;
+  }
+  
+  .footer .sub-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .footer .sub-footer .terms,
+  .footer .sub-footer .privacy,
+  .footer .sub-footer .glossary {
+  font-size: 17px;
+    margin-left: 10px;
+    text-decoration: none;
+    color: black;
+  }
+  
+  .logo img {
+    width: 50px;
+    height: 50px;
+  }
+  
+  
+  
+  .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Align items at the top */
+    flex-wrap: wrap; /* Add flex-wrap property to wrap the content on smaller screens */
+  }
+  
+  .google-play-container {
+    display: flex;
+    flex-direction: column; /* Arrange items in a column */
+    align-items: flex-end; /* Align items to the right */
+    margin-top: -20px; /* Adjust the margin-top to remove the space */
+  }
+  
+  .google-play-container img {
+    width: 182px;
+    height: 70px;
+  }
+  
+  .description,
+  .info,
+  .divider,
+  .sub-footer {
+    flex-basis: 100%;
+  color: black;
+  }
+  
+  .footer p {
+    margin-bottom: 0; 
+  }
+  
+
+.footer .twitter-link svg {
+  width: 25px;
+  height: 24px;
+  fill: #444444;
+}
+
+.header-row {
+    color: #3a3a3a; /* Text color */
+    font-size: 20px; /* Adjust the font size */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin-bottom: 20px; /* Add some margin to separate it from the player rows */
+    /* Add any other styles you want for the header row */
+    border-bottom: 2px solid #3a3a3a; /* Add border with desired thickness and color */
+  }
+
+  </style>
+  <header class="header">
+    <div class="logo">
+      <a href="http://datamb.football">
+          <img src="https://i.imgur.com/UurMbGS.png" alt="Wolverhampton statistics and data visuals. Wolverhampton compared to top 7 league teams in 2024/25. Wolverhampton club data profile, team radar comparison and plot chart" /></a>
+      <div class="logo-text"><a href="http://datamb.football">DataMB</a></div>
+    </div>
+    <nav class="navigation">
+      <a href="http://datamb.football/teamradars/" class="button">Compare</a>
+      <a href="http://datamb.football/plotteam/" class="button">Plot</a>
+      <a href="http://datamb.football/join/" class="button">Pro</a>
+    </nav>
+    <div class="search-container">
+      <button id="searchButton"><iconify-icon icon="ion:search-outline"></iconify-icon></button>
+  </div>
+    <a href="https://twitter.com/datamb_" target="_blank" class="twitter-link">
+      <svg id="twitterSvg" width="25" height="24" fill="#bcbcbc" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      </svg>
+    </a>
+  </header>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7677714701428206"
+     crossorigin="anonymous"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
+</head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSBMXX80EF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PSBMXX80EF');
+</script>
+
+<body>
+
+<div class="search-input-modal" id="searchInputModal">
+<div class="search-input-container">
+    <input type="text" id="searchInput" placeholder="Enter a team or player name...">
+    <div id="autocompleteBox"></div>
+</div>
+</div>
+
+
+<script>
+  
+  const xhr2 = new XMLHttpRequest();
+  xhr2.open('GET', 'https://datamb.football/database/searchbar.csv', false); // false for synchronous request
+  xhr2.send(null);
+  
+  let dataCSV = xhr2.responseText;
+
+function _0x5707(_0xd20fa7,_0x4d36b5){const _0x4dcd69=_0x4dcd();return _0x5707=function(_0x57077a,_0xde96b9){_0x57077a=_0x57077a-0x140;let _0x383e81=_0x4dcd69[_0x57077a];return _0x383e81;},_0x5707(_0xd20fa7,_0x4d36b5);}const _0xedf2b2=_0x5707;(function(_0x16e1b0,_0x125833){const _0x222c5a=_0x5707,_0x3f540c=_0x16e1b0();while(!![]){try{const _0x3105f2=parseInt(_0x222c5a(0x161))/0x1+parseInt(_0x222c5a(0x144))/0x2+parseInt(_0x222c5a(0x148))/0x3+-parseInt(_0x222c5a(0x155))/0x4+parseInt(_0x222c5a(0x141))/0x5*(-parseInt(_0x222c5a(0x145))/0x6)+-parseInt(_0x222c5a(0x157))/0x7+parseInt(_0x222c5a(0x14b))/0x8*(parseInt(_0x222c5a(0x159))/0x9);if(_0x3105f2===_0x125833)break;else _0x3f540c['push'](_0x3f540c['shift']());}catch(_0x450250){_0x3f540c['push'](_0x3f540c['shift']());}}}(_0x4dcd,0x1bc51));const dataLines=dataCSV[_0xedf2b2(0x160)]('\x0a'),searchButton=document[_0xedf2b2(0x142)]('searchButton'),searchInputModal=document[_0xedf2b2(0x142)](_0xedf2b2(0x14a)),searchInput=document[_0xedf2b2(0x142)](_0xedf2b2(0x143)),autocompleteBox=document[_0xedf2b2(0x142)](_0xedf2b2(0x162)),data1=dataLines[_0xedf2b2(0x146)](_0x19546c=>{const _0x89300c=_0xedf2b2,[_0x5af128,_0x515bec]=_0x19546c[_0x89300c(0x160)](',');return{'name':_0x5af128,'link':_0x515bec};});function removeDiacritics(_0x3ed1af){const _0x202611=_0xedf2b2,_0x4b45cf={'ø':'o','Ø':'O','ı':'i'};return _0x3ed1af=_0x3ed1af[_0x202611(0x147)](/[øØıI]/g,_0x19f74a=>_0x4b45cf[_0x19f74a]),_0x3ed1af[_0x202611(0x15d)]('NFD')[_0x202611(0x147)](/[\u0300-\u036f]/g,'');}function search2(_0x1db14d){const _0x26c944=_0xedf2b2;autocompleteBox[_0x26c944(0x15e)]='';const _0x321867=removeDiacritics(_0x1db14d)[_0x26c944(0x147)](/[^\w\s]/g,'')[_0x26c944(0x149)](),_0x3ad89e=data1[_0x26c944(0x15c)](_0xb995bf=>{const _0x3866b0=_0x26c944,_0x2b7de7=removeDiacritics(_0xb995bf[_0x3866b0(0x14e)])['replace'](/[^\w\s]/g,'')[_0x3866b0(0x149)]();return _0x2b7de7['includes'](_0x321867);});if(_0x3ad89e[_0x26c944(0x163)]===0x0){autocompleteBox[_0x26c944(0x152)][_0x26c944(0x14c)]='none';return;}_0x3ad89e[_0x26c944(0x151)](_0x4b9def=>{const _0x31eeb1=_0x26c944,_0x505ab8=document[_0x31eeb1(0x14d)]('div'),_0x3a2d70=document[_0x31eeb1(0x14d)]('a');_0x3a2d70['href']=_0x4b9def[_0x31eeb1(0x154)],_0x3a2d70[_0x31eeb1(0x150)]=_0x4b9def[_0x31eeb1(0x14e)],_0x505ab8[_0x31eeb1(0x15b)](_0x3a2d70),autocompleteBox[_0x31eeb1(0x15b)](_0x505ab8);}),autocompleteBox['style'][_0x26c944(0x14c)]=_0x26c944(0x153);}searchButton[_0xedf2b2(0x156)](_0xedf2b2(0x14f),()=>{const _0x350b96=_0xedf2b2;searchInputModal['style'][_0x350b96(0x14c)]=_0x350b96(0x153);}),searchInput['addEventListener'](_0xedf2b2(0x158),()=>{const _0x122364=_0xedf2b2,_0x1aac33=searchInput['value'];_0x1aac33[_0x122364(0x140)]()===''?autocompleteBox[_0x122364(0x152)][_0x122364(0x14c)]='none':search2(_0x1aac33);}),document['addEventListener']('click',_0x17873a=>{const _0x2c2a21=_0xedf2b2;_0x17873a[_0x2c2a21(0x15a)]===searchInputModal&&(searchInputModal[_0x2c2a21(0x152)][_0x2c2a21(0x14c)]=_0x2c2a21(0x15f));});function _0x4dcd(){const _0x3abacf=['forEach','style','block','link','165476bdcaHI','addEventListener','430668iEzpyY','input','90cmGEmO','target','appendChild','filter','normalize','innerHTML','none','split','102625kyWWmb','autocompleteBox','length','trim','5KymJaR','getElementById','searchInput','423476PJmBDe','1170534HGXHHf','map','replace','60222cRWbFM','toLowerCase','searchInputModal','61832bbygIm','display','createElement','name','click','textContent'];_0x4dcd=function(){return _0x3abacf;};return _0x4dcd();}
+</script>
+
+<div class="container">
+  <div class="desktop-row">
+    <div id="resultsTable" class="metric-table"></div>
+    <div class="radar-wrapper">
+      <svg class="radar"><g transform="translate(231.77,225.77)"><g class="axisWrapper">
+        <g class="radar_label">
+          <text class="label" data-type="Aerial%" data-idx="0" transform="translate(-60 -196.04) scale(1.3) rotate(-1.7)">Physicality</text>
+      </g>
+      
+      <g class="radar_label">
+          <text class="label" data-type="Long%" data-idx="6" transform="matrix(0.65, -1.118, 1.118, 0.65, -188.21, -80.03) rotate(7.5)">Defending</text>
+      </g>
+      
+      <g class="radar_label">
+          <text class="label" data-type="Passes" data-idx="5" transform="matrix(-0.494, -1.209, 1.209, -0.494, -173, 107.54) rotate(3.87)">Counters</text>
+      </g>
+      
+      <g class="radar_label">
+          <text class="label" data-type="Exits" data-idx="4" transform="translate(-132.12 177.16) scale(1.3) rotate(21)">Possession</text>
+      </g>
+      
+      <g class="radar_label">
+          <text class="label" data-type="Aerial" data-idx="3" transform="translate(71.82 206.54) scale(1.3) rotate(-31)">Attacking</text>
+      </g>
+      
+      <g class="radar_label">
+          <text class="label" data-type="Def Actions" data-idx="2" transform="translate(200.22 6.30) scale(1.3) rotate(99.11)">Goals</text>
+      </g>
+      
+      <g class="radar_label">
+          <text class="label" data-type="Shotstopping" data-idx="1" transform="translate(125.64 -163.65) scale(1.3) rotate(51.49)">Pressing</text>
+      </g>
+      <circle class="blackCircle" r="190" style="fill:none; stroke:#D3D3D3; stroke-width:1;"></circle>
+      <circle class="gridCircle" r="190" style="fill: rgb(16, 135, 188); fill-opacity: 0.03;"></circle>
+      <circle class="gridCircle" r="160" style="fill: rgb(16, 135, 188); fill-opacity: 0.03;"></circle>
+      <circle class="gridCircle" r="120" style="fill: rgb(16, 135, 188); fill-opacity: 0.03;"></circle>
+      <circle class="gridCircle" r="80" style="fill: rgb(16, 135, 188); fill-opacity: 0.03;"></circle>
+      <circle class="gridCircle" r="40" style="fill: rgb(16, 135, 188); fill-opacity: 0.03;"></circle>
+      <line x1="0" y1="0" x2="9.33" y2="189.4543362" stroke="#D3D3D3" stroke-width="1" transform="translate(-9.33, -189.4543362)"></line>
+      <line x1="0" y1="0" x2="-142.0538533333333" y2="126.24" stroke="#D3D3D3" stroke-width="1" transform="translate(141.74184, -126.24)"></line>
+      <line x1="0" y1="0" x2="-187.31589333333332" y2="-32.31413333333333" stroke="#D3D3D3" stroke-width="1" transform="translate(187.5574112, 32.2528)"></line>
+      <line x1="0" y1="0" x2="-91.84497333333333" y2="-166.92245333333333" stroke="#D3D3D3" stroke-width="1" transform="translate(91.84497333333333, 166.21328)"></line>
+      <line x1="0" y1="0" x2="72.99733333333333" y2="-175.84917333333335" stroke="#D3D3D3" stroke-width="1" transform="translate(-72.99997333333334, 175.334068)"></line>
+      <line x1="0" y1="0" x2="182.73258666666666" y2="-52.67472" stroke="#D3D3D3" stroke-width="1" transform="translate(-182.7209384, 52.480128)"></line>
+      <line x1="0" y1="0" x2="154.67849333333334" y2="109.91788799999999" stroke="#D3D3D3" stroke-width="1" transform="translate(-154.6883792222, -110.017215488)"></line>
+      <g class="radarWrapper"></g>
+      </g></g></svg>      <a href="https://datamb.football/teamradars/">
+        <button class="radar-button">Compare teams</button>
+      </a>
+    </div>
+  </div>
+
+  <!-- Second row: Output and scatter plot with plot-button -->
+  <div class="desktop-row">
+    <div id="output" class="output"></div>
+
+    <!-- Wrapper for scatter plot and button -->
+    <div class="scatter-plot-wrapper">
+      <svg id="scatter-plot" class="scatter-plot"></svg>
+      <a href="https://datamb.football/plotteam/">
+        <button class="plot-button">Plot more metrics</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+
+        
+<select id="select-league" onchange="updateChart()">
+  <option value="all">Top 7 Leagues</option>
+  <option value="Premier League">Premier League</option>
+  <option value="La Liga">La Liga</option>
+  <option value="Bundesliga">Bundesliga</option>
+  <option value="Serie A">Serie A</option> 
+  <option value="Ligue 1">Ligue 1</option>
+  <option value="Primeira Liga">Primeira Liga</option>
+  <option value="Eredivisie">Eredivisie</option>
+  </select>
+  
+<input type="text" id="searchInput1" class="search-bar" placeholder=""/>
+<input type="button" id="searchButton1" value=""/>
+<center><br>
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7677714701428206"
+       crossorigin="anonymous"></script>
+  <!-- radarplotsearch -->
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-7677714701428206"
+       data-ad-slot="6673239737"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script> <br></center>
+
+
+<script>
+  
+  
+  const csvData = '1,Wolverhampton,vs Top 7 League teams,2024/25,Premier League,0.664,0.397,0.438,0.725,0.095,0.435,0.672';  
+
+const _0x394239=_0x6c35;(function(_0x447e8d,_0x1ce098){const _0x8e0224=_0x6c35,_0x36dffa=_0x447e8d();while(!![]){try{const _0x33567f=-parseInt(_0x8e0224(0x205))/0x1*(-parseInt(_0x8e0224(0x1f6))/0x2)+parseInt(_0x8e0224(0x20c))/0x3*(parseInt(_0x8e0224(0x1f7))/0x4)+-parseInt(_0x8e0224(0x1f4))/0x5*(-parseInt(_0x8e0224(0x20a))/0x6)+parseInt(_0x8e0224(0x1d0))/0x7+parseInt(_0x8e0224(0x212))/0x8*(-parseInt(_0x8e0224(0x1e5))/0x9)+-parseInt(_0x8e0224(0x20f))/0xa+parseInt(_0x8e0224(0x1fa))/0xb*(-parseInt(_0x8e0224(0x1ed))/0xc);if(_0x33567f===_0x1ce098)break;else _0x36dffa['push'](_0x36dffa['shift']());}catch(_0x414eac){_0x36dffa['push'](_0x36dffa['shift']());}}}(_0x5d99,0xf095b));function _0x6c35(_0x50fcf5,_0x140229){const _0x5d99f3=_0x5d99();return _0x6c35=function(_0x6c35f6,_0x5c5a8d){_0x6c35f6=_0x6c35f6-0x1c3;let _0x1a648b=_0x5d99f3[_0x6c35f6];return _0x1a648b;},_0x6c35(_0x50fcf5,_0x140229);}const dataArray=csvData[_0x394239(0x1c7)]('\x0a')['map'](_0x503146=>_0x503146[_0x394239(0x1c7)](',')),colorClasses=['result-color-blue'];let searchResults=[];function removeSpecialChars(_0x4fc76a){const _0x4ead6f=_0x394239;return _0x4fc76a['normalize'](_0x4ead6f(0x200))[_0x4ead6f(0x1c4)](/[\u0300-\u036f\s]/g,'');}function _0x5d99(){const _0xaaea35=['stroke-width','filter','fillOpacity','Pressing','red','Physicality','radarLines\x20','style','\x20min','transform','join','2475tdqiGl','includes','add','appendChild','circle','points','Goals','classList','564TBVkMU','green','length','paddingLeft','listStyleType','9px','polyline','99150ewosCY','Defending','2928116YZNDvY','591532fNysrM','Arial,\x20sans-serif','setAttribute','17281SohTuB','.radarPolygon','createElementNS','map','Season','polygon','NFD','forEach','class','translate(231.77,225.77)','radarPolygon\x20','1jkxVvj','none','click','0.2','getElementById','186ivOBSV','League','3iFdqps','searchInput1','fill','3974510fXWyOZ','innerHTML','addEventListener','37160QjFwwv','log','sin','replace','createElement','textContent','split','push','0.86','Possession','http://www.w3.org/2000/svg','fontFamily','black','value',')\x20-\x20','3551989ndbzpx','table','resultsTable','.radar','metrics-table','toLowerCase','querySelector','querySelectorAll','Attacking','searchButton1'];_0x5d99=function(){return _0xaaea35;};return _0x5d99();}function search(_0x4669fd){const _0x5b1503=_0x394239,_0x2e1392=dataArray[_0x5b1503(0x1db)](_0x41826d=>removeSpecialChars(_0x41826d[0x1][_0x5b1503(0x1d5)]())[_0x5b1503(0x1e6)](removeSpecialChars(_0x4669fd[_0x5b1503(0x1d5)]())));return _0x2e1392;}function createTable(_0x38c895,_0x1a2b83,_0x31797b){const _0x24fd24=_0x394239,_0x27aae7=document[_0x24fd24(0x209)]('resultsTable'),_0x537ed0=['','','',_0x24fd24(0x1fe),_0x24fd24(0x20b),_0x24fd24(0x1eb),_0x24fd24(0x1d8),_0x24fd24(0x1ca),'Counters',_0x24fd24(0x1f5),_0x24fd24(0x1df),_0x24fd24(0x1dd)],_0x17a7eb=_0x27aae7['querySelector']('th')!==null,_0x39ed41=_0x17a7eb?_0x27aae7[_0x24fd24(0x1d6)](_0x24fd24(0x1d1)):document['createElement'](_0x24fd24(0x1d1));_0x39ed41[_0x24fd24(0x1ec)][_0x24fd24(0x1e7)](_0x24fd24(0x1d4));if(!_0x17a7eb){const _0x5313a8=document[_0x24fd24(0x1c5)]('tr');for(let _0x48ce1f=0x0;_0x48ce1f<_0x537ed0[_0x24fd24(0x1ef)];_0x48ce1f++){const _0x38a7a9=document['createElement']('th');_0x38a7a9['textContent']=_0x537ed0[_0x48ce1f],_0x5313a8[_0x24fd24(0x1e8)](_0x38a7a9);}}const _0x4bc9c5=dataArray[_0x1a2b83];for(let _0x418ced=0x1;_0x418ced<_0x537ed0[_0x24fd24(0x1ef)];_0x418ced++){const _0x19f43d=document[_0x24fd24(0x1c5)]('tr'),_0x556782=document[_0x24fd24(0x1c5)]('td');_0x556782[_0x24fd24(0x1c6)]=_0x537ed0[_0x418ced],_0x19f43d[_0x24fd24(0x1e8)](_0x556782);const _0xce6101=document[_0x24fd24(0x1c5)]('td');let _0x8a895a=_0x4bc9c5[_0x418ced];if(_0x418ced>=0x5&&_0x418ced<=0xb){_0x8a895a=parseFloat(_0x8a895a)*0x64;const _0x3e930f=Math['round'](_0x8a895a),_0x4685d7=_0x3e930f%0xa;let _0x2941e3='th';if(_0x4685d7===0x1&&_0x3e930f!==0xb)_0x2941e3='st';else{if(_0x4685d7===0x2&&_0x3e930f!==0xc)_0x2941e3='nd';else _0x4685d7===0x3&&_0x3e930f!==0xd&&(_0x2941e3='rd');}_0x8a895a=_0x3e930f+_0x2941e3+'\x20percentile';}[0x1,0x2,0x3,0x4][_0x24fd24(0x1e6)](_0x418ced)&&_0xce6101['classList'][_0x24fd24(0x1e7)](_0x24fd24(0x1cd));_0xce6101[_0x24fd24(0x1c6)]=_0x8a895a,_0xce6101['classList'][_0x24fd24(0x1e7)](_0x31797b);const _0x143229=parseFloat(_0x8a895a);if(_0x143229>=0x4b&&_0x143229<=0x64)_0xce6101[_0x24fd24(0x1ec)][_0x24fd24(0x1e7)](_0x24fd24(0x1ee));else _0x143229>=0x0&&_0x143229<=0x19&&_0xce6101[_0x24fd24(0x1ec)][_0x24fd24(0x1e7)](_0x24fd24(0x1de));_0x19f43d[_0x24fd24(0x1e8)](_0xce6101),_0x39ed41[_0x24fd24(0x1e8)](_0x19f43d);}!_0x17a7eb&&_0x27aae7['appendChild'](_0x39ed41);const _0x458fd3=dataArray[_0x1a2b83][_0x24fd24(0x1e4)](',\x20');console[_0x24fd24(0x213)](_0x458fd3);const _0x4d904e=0xbe,_0x3c69be=[0x0,0x0],_0x11c738=[0x0,0x2*Math['PI']/0x7,0x4*Math['PI']/0x7,0x6*Math['PI']/0x7,0x8*Math['PI']/0x7,0xa*Math['PI']/0x7,0xc*Math['PI']/0x7];function _0xc7a42c(_0x30d357,_0x19594f){const _0x18d5eb=_0x24fd24;let _0x29358b=_0x11c738[_0x30d357-0x1];_0x29358b+=0x2*Math['PI']/0x7*0.2;const _0x339243=0xbe*_0x19594f*Math['cos'](_0x29358b),_0x67bc25=0xbe*_0x19594f*Math[_0x18d5eb(0x1c3)](_0x29358b);return{'x':_0x339243,'y':_0x67bc25};}const _0x357004=document[_0x24fd24(0x1d6)](_0x24fd24(0x1d3)),_0x26233a=_0x357004['appendChild'](document['createElementNS'](_0x24fd24(0x1cb),'g'));_0x26233a['setAttribute'](_0x24fd24(0x1e3),_0x24fd24(0x203)),_0x26233a[_0x24fd24(0x210)]='';const _0x35acfc=[],_0x5d66cd=_0x458fd3['split'](',');for(let _0x1bb9e4=0x5;_0x1bb9e4<0xc;_0x1bb9e4++){_0x35acfc[_0x24fd24(0x1c8)]({'axis':_0x1bb9e4-0x4,'value':parseFloat(_0x5d66cd[_0x1bb9e4])});}const _0x3b0f7a=_0x35acfc[_0x24fd24(0x1fd)](({axis:_0x2d3cb3,value:_0x1c9a94})=>{const {x:_0x416e12,y:_0x5244b6}=_0xc7a42c(_0x2d3cb3,_0x1c9a94);return _0x416e12+','+_0x5244b6;})[_0x24fd24(0x1e4)]('\x20'),_0x10bb43=document[_0x24fd24(0x1fc)](_0x24fd24(0x1cb),_0x24fd24(0x1f3));_0x10bb43['setAttribute']('class',_0x24fd24(0x1e0)+_0x31797b),_0x10bb43['setAttribute'](_0x24fd24(0x1ea),_0x3b0f7a+'\x20'+_0x3b0f7a[_0x24fd24(0x1c7)]('\x20')[0x0]),_0x10bb43['setAttribute'](_0x24fd24(0x1da),'3'),_0x10bb43[_0x24fd24(0x1f9)]('fill',_0x24fd24(0x206)),_0x26233a[_0x24fd24(0x1e8)](_0x10bb43);const _0x129b46=document['createElementNS'](_0x24fd24(0x1cb),_0x24fd24(0x1ff));_0x129b46[_0x24fd24(0x1f9)](_0x24fd24(0x202),_0x24fd24(0x204)+_0x31797b),_0x129b46[_0x24fd24(0x1f9)](_0x24fd24(0x1ea),_0x3b0f7a),_0x129b46[_0x24fd24(0x1e1)][_0x24fd24(0x1dc)]=_0x24fd24(0x208),_0x26233a[_0x24fd24(0x1e8)](_0x129b46),_0x35acfc[_0x24fd24(0x201)](({axis:_0x3eedba,value:_0x56e450})=>{const _0x25a5d8=_0x24fd24,{x:_0x318ae7,y:_0xc22d1}=_0xc7a42c(_0x3eedba,_0x56e450),_0x357765=document['createElementNS'](_0x25a5d8(0x1cb),_0x25a5d8(0x1e9));_0x357765[_0x25a5d8(0x1f9)](_0x25a5d8(0x202),'radarCircle\x20'+_0x31797b),_0x357765[_0x25a5d8(0x1e1)][_0x25a5d8(0x1dc)]=_0x25a5d8(0x1c9),_0x357765[_0x25a5d8(0x1f9)]('r','6'),_0x357765['setAttribute']('cx',_0x318ae7),_0x357765[_0x25a5d8(0x1f9)]('cy',_0xc22d1),_0x26233a['appendChild'](_0x357765);});}function toggleFilling(){const _0x1048a7=_0x394239,_0x2c0dd5=document[_0x1048a7(0x1d7)]('.radarPolygon');_0x2c0dd5[_0x1048a7(0x201)](_0x179e06=>{const _0x13d840=_0x1048a7;_0x179e06[_0x13d840(0x1e1)][_0x13d840(0x20e)]=_0x179e06[_0x13d840(0x1e1)][_0x13d840(0x20e)]?'':_0x13d840(0x206);});}const teamNames=new Set();function createTableForTeam1(){const _0x5f1e49=_0x394239,_0x34bda1=document[_0x5f1e49(0x209)](_0x5f1e49(0x20d)),_0x26c908=document[_0x5f1e49(0x209)](_0x5f1e49(0x1d9)),_0x57cb59=document[_0x5f1e49(0x209)](_0x5f1e49(0x1d2)),_0x36091c=document[_0x5f1e49(0x1c5)]('ul');_0x36091c[_0x5f1e49(0x1e1)][_0x5f1e49(0x1cc)]=_0x5f1e49(0x1f8),_0x36091c[_0x5f1e49(0x1e1)][_0x5f1e49(0x1f1)]=_0x5f1e49(0x206),_0x36091c[_0x5f1e49(0x1e1)][_0x5f1e49(0x1f0)]=_0x5f1e49(0x1f2),_0x57cb59[_0x5f1e49(0x1e8)](_0x36091c);let _0x481880=0x0;_0x26c908[_0x5f1e49(0x211)](_0x5f1e49(0x207),function(){const _0x1166c8=_0x5f1e49,_0x2f14f0=_0x34bda1[_0x1166c8(0x1ce)],_0xe22681=search(_0x2f14f0),_0x42b3fa=document[_0x1166c8(0x1d7)](_0x1166c8(0x1fb));_0x42b3fa[_0x1166c8(0x201)](_0xd2164f=>{const _0x2e1db1=_0x1166c8;_0xd2164f[_0x2e1db1(0x1e1)][_0x2e1db1(0x20e)]='';});if(_0xe22681){const _0x3632e2=parseInt(_0xe22681[0x0]),_0x1dcbd0=_0xe22681[0x1]+'\x20('+_0xe22681[0x2]+',\x20'+_0xe22681[0x3]+_0x1166c8(0x1cf)+_0xe22681[0xb]+_0x1166c8(0x1e2),_0x5604f8=colorClasses[_0x481880%colorClasses['length']];createTable(_0x1dcbd0,_0x3632e2-0x1,_0x5604f8),_0x481880++;}});}createTableForTeam1(),searchButton1[_0x394239(0x207)]();
+</script>
+
+<script>
+
+const _0x10931b=_0x549b;function _0x549b(_0x3cda99,_0x3a1d56){const _0x398d91=_0x398d();return _0x549b=function(_0x549bd0,_0x1de6e8){_0x549bd0=_0x549bd0-0x16b;let _0x247385=_0x398d91[_0x549bd0];return _0x247385;},_0x549b(_0x3cda99,_0x3a1d56);}(function(_0x5fd951,_0x3e82a5){const _0x35f1b1=_0x549b,_0x12e57f=_0x5fd951();while(!![]){try{const _0x26b5dd=parseInt(_0x35f1b1(0x17c))/0x1*(-parseInt(_0x35f1b1(0x189))/0x2)+-parseInt(_0x35f1b1(0x170))/0x3+parseInt(_0x35f1b1(0x171))/0x4+parseInt(_0x35f1b1(0x174))/0x5*(parseInt(_0x35f1b1(0x177))/0x6)+-parseInt(_0x35f1b1(0x181))/0x7+parseInt(_0x35f1b1(0x182))/0x8*(-parseInt(_0x35f1b1(0x16d))/0x9)+parseInt(_0x35f1b1(0x197))/0xa*(parseInt(_0x35f1b1(0x198))/0xb);if(_0x26b5dd===_0x3e82a5)break;else _0x12e57f['push'](_0x12e57f['shift']());}catch(_0x4bd15b){_0x12e57f['push'](_0x12e57f['shift']());}}}(_0x398d,0x8bff6));function _0x398d(){const _0x1c8b03=['6765HyAwgh','https://datamb.football/keepers','classList','4866iIeyYH','appendChild','Midfielder','Wolverhampton','slice','764347MqrJbj','output','Winger','random','get','1761970OrFFax','1080FDjKjU','Striker','open','getElementById','has','https://datamb.football/database/playerforteam.csv','add','2vVFtJh','https://datamb.football/midfielders','set','href','createTextNode','Full-back','header-row','createElement','Goalkeeper','textContent','https://datamb.football/wingers','https://datamb.football/fullbacks','https://datamb.football/centrebacks','entries','10xjQzKs','23873487XerIxw','https://datamb.football/','replace','GET','_stats/','trim','forEach','data','https://datamb.football/strikers','responseText','76221eoVYNS','values','div','3324819VTkryJ','2293900vAVkjF','sort','Centre-back'];_0x398d=function(){return _0x1c8b03;};return _0x398d();}const special_characters={'á':'a','à':'a','â':'a','ä':'a','å':'a','é':'e','è':'e','ê':'e','ë':'e','í':'i','ì':'i','î':'i','ï':'i','ó':'o','ò':'o','ô':'o','ö':'o','ø':'o','ú':'u','ù':'u','û':'u','ü':'u','ç':'c','ñ':'n','ß':'ss','æ':'ae','œ':'oe'},translation_table=new Map(Object[_0x10931b(0x196)](special_characters));function clean_and_replace(_0x5cbebe){const _0x1c8887=_0x10931b;return _0x5cbebe=_0x5cbebe[_0x1c8887(0x19d)](),_0x5cbebe=_0x5cbebe[_0x1c8887(0x19a)](/[áàâäåéèêëíìîïóòôöøúùûüçñßæœ]/g,_0x2fc480=>translation_table[_0x1c8887(0x180)](_0x2fc480)||'_'),_0x5cbebe=_0x5cbebe[_0x1c8887(0x19a)](/[^a-zA-Z0-9]+/g,'_'),_0x5cbebe;}function generatePlayerLink(_0x6e131f){const _0x341e7e=_0x10931b,_0x59a3af=clean_and_replace(_0x6e131f[0x0]),_0x2e019c=clean_and_replace(_0x6e131f[0x1]);return _0x341e7e(0x199)+_0x59a3af+'_'+_0x6e131f[0x1]+_0x341e7e(0x19c);}function filterPlayers(){const _0x2d787d=_0x10931b,_0xe14137=_0x2d787d(0x17a),_0x50b13a=new XMLHttpRequest();_0x50b13a[_0x2d787d(0x184)](_0x2d787d(0x19b),_0x2d787d(0x187),![]),_0x50b13a['send'](null);let _0x370654=_0x50b13a[_0x2d787d(0x16c)];Papa['parse'](_0x370654,{'header':![],'skipEmptyLines':!![],'dynamicTyping':!![],'complete':function(_0xb2bfe0){const _0x529fe5=_0x2d787d,_0x4fe5f4=_0xb2bfe0[_0x529fe5(0x19f)][_0x529fe5(0x17b)](0x1),_0x21bc85=_0x4fe5f4['filter'](_0x311321=>_0x311321[0x2]===_0xe14137),_0x289aa2=new Map();_0x21bc85[_0x529fe5(0x19e)](_0x1f7dfb=>{const _0x441f8e=_0x529fe5;if(!_0x289aa2[_0x441f8e(0x186)](_0x1f7dfb[0x0]))_0x289aa2[_0x441f8e(0x18b)](_0x1f7dfb[0x0],_0x1f7dfb);else{const _0x1bd459=_0x289aa2[_0x441f8e(0x180)](_0x1f7dfb[0x0]);Math[_0x441f8e(0x17f)]()<0.5&&_0x289aa2['set'](_0x1f7dfb[0x0],_0x1f7dfb);}});const _0x56594e=Array['from'](_0x289aa2[_0x529fe5(0x16e)]());_0x56594e[_0x529fe5(0x172)]((_0x194f2d,_0x11eaa4)=>_0x11eaa4[0x3]-_0x194f2d[0x3]);const _0x3db410=document[_0x529fe5(0x185)](_0x529fe5(0x17d));_0x3db410['innerHTML']='';const _0x1f4a26=document[_0x529fe5(0x190)]('div');_0x1f4a26[_0x529fe5(0x192)]='MOST\x20LEAGUE\x20MINUTES',_0x1f4a26[_0x529fe5(0x176)][_0x529fe5(0x188)](_0x529fe5(0x18f)),_0x3db410['appendChild'](_0x1f4a26),_0x56594e['forEach'](_0x796e83=>{const _0x5e3672=_0x529fe5,_0x529fc1=document['createElement'](_0x5e3672(0x16f)),_0x566dec=document[_0x5e3672(0x190)]('a');_0x566dec[_0x5e3672(0x18c)]=generatePlayerLink(_0x796e83),_0x566dec[_0x5e3672(0x192)]=_0x796e83[0x0];const _0x4c442d=document['createElement']('a');_0x4c442d['textContent']=_0x796e83[0x1];if(_0x796e83[0x1]===_0x5e3672(0x191))_0x4c442d['href']=_0x5e3672(0x175);else{if(_0x796e83[0x1]===_0x5e3672(0x173))_0x4c442d['href']=_0x5e3672(0x195);else{if(_0x796e83[0x1]===_0x5e3672(0x18e))_0x4c442d[_0x5e3672(0x18c)]=_0x5e3672(0x194);else{if(_0x796e83[0x1]===_0x5e3672(0x179))_0x4c442d[_0x5e3672(0x18c)]=_0x5e3672(0x18a);else{if(_0x796e83[0x1]===_0x5e3672(0x17e))_0x4c442d[_0x5e3672(0x18c)]=_0x5e3672(0x193);else _0x796e83[0x1]===_0x5e3672(0x183)&&(_0x4c442d[_0x5e3672(0x18c)]=_0x5e3672(0x16b));}}}}_0x529fc1[_0x5e3672(0x178)](_0x566dec),_0x529fc1['appendChild'](document[_0x5e3672(0x18d)](',\x20')),_0x529fc1[_0x5e3672(0x178)](_0x4c442d),_0x529fc1[_0x5e3672(0x178)](document[_0x5e3672(0x18d)](',\x20'+_0x796e83[0x3])),_0x3db410[_0x5e3672(0x178)](_0x529fc1);});}});}filterPlayers();
+</script>
+
+
+
+
+<script>
+
+function _0x3fc6(){const _0xa8845d=['912640fCcqGY','595MnGukT','6345MeamSy','44Ukoavx','158448ZJlXKC','3230qmewxg','96568OLdsXQ','561PnXBJb','open','6YXVRqC','1361864ZukPVZ','send','18vLFKcy','split','responseText','3592NJvyKT'];_0x3fc6=function(){return _0xa8845d;};return _0x3fc6();}const _0x47852c=_0xaa83;function _0xaa83(_0x4b4647,_0x2cfaae){const _0x3fc6ea=_0x3fc6();return _0xaa83=function(_0xaa83a9,_0x1e7ca6){_0xaa83a9=_0xaa83a9-0x1eb;let _0x3ecafb=_0x3fc6ea[_0xaa83a9];return _0x3ecafb;},_0xaa83(_0x4b4647,_0x2cfaae);}(function(_0x11c88a,_0x1a3ff4){const _0x16faba=_0xaa83,_0x3d8d9e=_0x11c88a();while(!![]){try{const _0x4bb9a5=parseInt(_0x16faba(0x1ed))/0x1*(-parseInt(_0x16faba(0x1f1))/0x2)+parseInt(_0x16faba(0x1fa))/0x3*(parseInt(_0x16faba(0x1f4))/0x4)+-parseInt(_0x16faba(0x1ee))/0x5+parseInt(_0x16faba(0x1f7))/0x6*(-parseInt(_0x16faba(0x1ef))/0x7)+-parseInt(_0x16faba(0x1f8))/0x8+-parseInt(_0x16faba(0x1f0))/0x9*(parseInt(_0x16faba(0x1f3))/0xa)+-parseInt(_0x16faba(0x1f5))/0xb*(-parseInt(_0x16faba(0x1f2))/0xc);if(_0x4bb9a5===_0x1a3ff4)break;else _0x3d8d9e['push'](_0x3d8d9e['shift']());}catch(_0x2d16b3){_0x3d8d9e['push'](_0x3d8d9e['shift']());}}}(_0x3fc6,0x26bcf));const xhr=new XMLHttpRequest();xhr[_0x47852c(0x1f6)]('GET','https://datamb.football/database/TEAM/teamplots.csv',![]),xhr[_0x47852c(0x1f9)](null);let csvData2=xhr[_0x47852c(0x1ec)];
+let extraHeaderRow = 'ID,Player,Top 7 Leagues,Goals per 90,xG per 90,Shots on target per 90,Shots on target %,Passes completed,Pass accuracy %,Possession %,Positional attacks per 90,Counter attacks per 90,Touches in the box per 90,Goals conceded per 90,SoT against per 90,Defensive duels per 90,Defensive duel %,Aerial duels per 90,Aerial duels %,Passes per possession,PPDA\n';
+
+// Concatenate the extra header row with the fetched CSV data
+csvData2 = extraHeaderRow + csvData2;
+csvData2=csvData2[_0x47852c(0x1eb)]('\x5cn')['join']('\x0a'); 
+
+var _0x5a6bf0=_0x1eb5;function _0xe414(){var _0x2d4735=['stroke','.x-axis','y-axis','translate(0,','191922sPBedl','style','range','trim','extent','1587576JERCbq','tickSize','select','height','width','median','axisLeft','.player-name-','222lYSJBu','scaleLinear','.x-label','includes','mouseout','2235796sfEhEz','class','click','font-size','49864jehdhH','x-axis','push','#4682B4B4','map','remove','pageX','highlighted','append','option','transform','all','split','line','attr','slice','51880dQMvom','end','exit','hovered','1688085kNCxcm','selectAll','Arial','fill','property','display','indexOf','domain','red','classed','forEach','circle','transition','duration','body','text-anchor','<br/>','left','merge','block','getElementById','stroke-dasharray','axisBottom','top','max','player-name','bottom','event','#scatter-plot','8PgqpWf','value','none','data','change','12px','x-median','mouseover','nice','enter','call','text','opacity','rotate(-90)','clicked','each','splice','2496865rHMvDM','pageY','filter','right','font-family'];_0xe414=function(){return _0x2d4735;};return _0xe414();}(function(_0x2e8162,_0x25fbf9){var _0x4de071=_0x1eb5,_0x533eac=_0x2e8162();while(!![]){try{var _0x21f8ce=parseInt(_0x4de071(0xc9))/0x1+parseInt(_0x4de071(0x114))/0x2+parseInt(_0x4de071(0x119))/0x3+parseInt(_0x4de071(0x126))/0x4+-parseInt(_0x4de071(0xd9))/0x5*(parseInt(_0x4de071(0x121))/0x6)+-parseInt(_0x4de071(0x10b))/0x7*(parseInt(_0x4de071(0xfa))/0x8)+-parseInt(_0x4de071(0xdd))/0x9;if(_0x21f8ce===_0x25fbf9)break;else _0x533eac['push'](_0x533eac['shift']());}catch(_0x51d626){_0x533eac['push'](_0x533eac['shift']());}}}(_0xe414,0x4aa82));var rows=csvData2[_0x5a6bf0(0x117)]()[_0x5a6bf0(0xd5)]('\x0a'),header=rows[0x0][_0x5a6bf0(0xd5)](','),data=rows[_0x5a6bf0(0xd8)](0x1)[_0x5a6bf0(0xcd)](function(_0x1dc4e4){var _0x5ad8c0=_0x5a6bf0;return _0x1dc4e4[_0x5ad8c0(0xd5)](',')[_0x5ad8c0(0xcd)](function(_0x39b66e,_0x2e1549){return _0x2e1549>=0x3?parseFloat(_0x39b66e):_0x39b66e;});}),margin={'top':0x28,'right':0x50,'bottom':0x64,'left':0x64},width=0x26c-margin[_0x5a6bf0(0xee)]-margin[_0x5a6bf0(0x10e)],height=0x19f-margin['top']-margin[_0x5a6bf0(0xf7)],medianLinesVisible=![],container=d3[_0x5a6bf0(0x11b)](_0x5a6bf0(0xeb))['append']('div')[_0x5a6bf0(0x115)]('display',_0x5a6bf0(0xfc)),selectX=container[_0x5a6bf0(0xd1)]('select')['on'](_0x5a6bf0(0xfe),updateChart),selectY=container[_0x5a6bf0(0xd1)](_0x5a6bf0(0x11b))['on'](_0x5a6bf0(0xfe),updateChart),xMedian=d3[_0x5a6bf0(0x11e)](data,function(_0x252a0d){var _0x4994b6=_0x5a6bf0;return _0x252a0d[header[_0x4994b6(0xe3)](xMetric)];}),yMedian=d3[_0x5a6bf0(0x11e)](data,function(_0x5f2f20){return _0x5f2f20[header['indexOf'](yMetric)];}),names=data[_0x5a6bf0(0xcd)](function(_0x4af7fe){return _0x4af7fe[0x1];});header['slice'](0x3)[_0x5a6bf0(0xe7)](function(_0x335a59){var _0x459dd9=_0x5a6bf0;selectX[_0x459dd9(0xd1)](_0x459dd9(0xd2))[_0x459dd9(0x105)](_0x335a59)[_0x459dd9(0xd7)](_0x459dd9(0xfb),_0x335a59);}),header[_0x5a6bf0(0xd8)](0xd)[_0x5a6bf0(0xe7)](function(_0xb9ce9e){var _0x5c85e0=_0x5a6bf0;selectY[_0x5c85e0(0xd1)](_0x5c85e0(0xd2))[_0x5c85e0(0x105)](_0xb9ce9e)[_0x5c85e0(0xd7)](_0x5c85e0(0xfb),_0xb9ce9e);});var svg=d3['select'](_0x5a6bf0(0xf9))['attr'](_0x5a6bf0(0x11d),width+margin[_0x5a6bf0(0xee)]+margin[_0x5a6bf0(0x10e)])[_0x5a6bf0(0xd7)](_0x5a6bf0(0x11c),height+margin[_0x5a6bf0(0xf4)]+margin[_0x5a6bf0(0xf7)])['append']('g')[_0x5a6bf0(0xd7)](_0x5a6bf0(0xd3),'translate('+margin['left']+','+margin['top']+')'),xMetric=header[0x6],yMetric=header[0x8],xScale=d3['scaleLinear']()[_0x5a6bf0(0xe4)]([0x0,d3[_0x5a6bf0(0xf5)](data,function(_0xbbb641){return _0xbbb641[0x3];})])[_0x5a6bf0(0x116)]([0x0,width]),yScale=d3[_0x5a6bf0(0x122)]()[_0x5a6bf0(0xe4)]([0x0,d3['max'](data,function(_0x3bb05c){return _0x3bb05c[0x3];})])[_0x5a6bf0(0x116)]([height,0x0]),xAxis=d3[_0x5a6bf0(0xf3)](xScale)['tickSize'](0x0),yAxis=d3[_0x5a6bf0(0x11f)](yScale)['tickSize'](0x0),xExtent=d3[_0x5a6bf0(0x118)](data,function(_0xe80798){var _0x40d57e=_0x5a6bf0;return _0xe80798[header[_0x40d57e(0xe3)](xMetric)];}),yExtent=d3['extent'](data,function(_0x4b259c){var _0x458828=_0x5a6bf0;return _0x4b259c[header[_0x458828(0xe3)](yMetric)];});function _0x1eb5(_0x414ada,_0x168e91){var _0xe4142b=_0xe414();return _0x1eb5=function(_0x1eb5ba,_0x1d11fc){_0x1eb5ba=_0x1eb5ba-0xc7;var _0x5d2c21=_0xe4142b[_0x1eb5ba];return _0x5d2c21;},_0x1eb5(_0x414ada,_0x168e91);}svg[_0x5a6bf0(0xd1)]('g')[_0x5a6bf0(0xd7)](_0x5a6bf0(0xd3),_0x5a6bf0(0x113)+height+')')[_0x5a6bf0(0x104)](xAxis)[_0x5a6bf0(0xde)](_0x5a6bf0(0x105))[_0x5a6bf0(0xce)](),svg[_0x5a6bf0(0xd1)]('g')[_0x5a6bf0(0x104)](yAxis)[_0x5a6bf0(0xde)]('text')[_0x5a6bf0(0xce)](),svg['append'](_0x5a6bf0(0x105))[_0x5a6bf0(0xd7)]('class','x-label')['attr'](_0x5a6bf0(0xec),_0x5a6bf0(0xda))[_0x5a6bf0(0xd7)]('x',width)['attr']('y',height+margin[_0x5a6bf0(0xf4)])[_0x5a6bf0(0x105)](header[0x3])['style'](_0x5a6bf0(0x10f),_0x5a6bf0(0xdf))[_0x5a6bf0(0x115)](_0x5a6bf0(0xc8),'12px'),svg['append'](_0x5a6bf0(0x105))[_0x5a6bf0(0xd7)](_0x5a6bf0(0x127),'y-label')[_0x5a6bf0(0xd7)]('text-anchor',_0x5a6bf0(0xda))[_0x5a6bf0(0xd7)](_0x5a6bf0(0xd3),_0x5a6bf0(0x107))[_0x5a6bf0(0xd7)]('y',-0x23)['attr']('x',0x0)['text'](header[0x3])['style'](_0x5a6bf0(0x10f),'Arial')[_0x5a6bf0(0x115)](_0x5a6bf0(0xc8),_0x5a6bf0(0xff)),svg[_0x5a6bf0(0xd1)]('g')['attr'](_0x5a6bf0(0x127),_0x5a6bf0(0xca))[_0x5a6bf0(0xd7)](_0x5a6bf0(0xd3),'translate(0,'+height+')')[_0x5a6bf0(0x104)](d3[_0x5a6bf0(0xf3)](xScale)[_0x5a6bf0(0x11a)](0x0)),svg[_0x5a6bf0(0xd1)]('g')['attr'](_0x5a6bf0(0x127),_0x5a6bf0(0x112))[_0x5a6bf0(0x104)](d3['axisLeft'](yScale)[_0x5a6bf0(0x11a)](0x0));var clickedCircles=[],filteredData,filteredNames,medianLinesVisible=!![],circles=svg['selectAll'](_0x5a6bf0(0xe8))[_0x5a6bf0(0xfd)](data)[_0x5a6bf0(0x103)]()['append'](_0x5a6bf0(0xe8))[_0x5a6bf0(0xd7)]('cx',function(_0x1cc110){var _0x13fe3b=_0x5a6bf0;return xScale(_0x1cc110[header[_0x13fe3b(0xe3)](xMetric)]);})[_0x5a6bf0(0xd7)]('cy',function(_0x4ba91a){var _0xa5571e=_0x5a6bf0;return yScale(_0x4ba91a[header[_0xa5571e(0xe3)](yMetric)]);})[_0x5a6bf0(0xd7)]('r',0x6)[_0x5a6bf0(0x115)]('fill',_0x5a6bf0(0xcc))['on'](_0x5a6bf0(0xc7),function(_0x12a7be,_0xb600cb){var _0x3770eb=_0x5a6bf0,_0x3b5058=clickedCircles[_0x3770eb(0xe3)](_0xb600cb);_0x3b5058===-0x1&&(clickedCircles[_0x3770eb(0xcb)](_0xb600cb),d3['select'](this)[_0x3770eb(0xe6)](_0x3770eb(0x108),!![])[_0x3770eb(0xe6)](_0x3770eb(0xdc),![])[_0x3770eb(0x115)](_0x3770eb(0xe0),_0x3770eb(0xe5)),svg[_0x3770eb(0xd1)](_0x3770eb(0x105))[_0x3770eb(0xd7)]('x',xScale(_0x12a7be[header[_0x3770eb(0xe3)](xMetric)])-0x14)[_0x3770eb(0xd7)]('y',yScale(_0x12a7be[header[_0x3770eb(0xe3)](yMetric)])+0x14)['text'](names[_0xb600cb])[_0x3770eb(0xe6)](_0x3770eb(0xf6),!![])['style'](_0x3770eb(0x10f),_0x3770eb(0xdf))[_0x3770eb(0x115)]('font-size',_0x3770eb(0xff)));}),xMedianLine=svg[_0x5a6bf0(0xd1)](_0x5a6bf0(0xd6))[_0x5a6bf0(0xd7)](_0x5a6bf0(0x127),_0x5a6bf0(0x100))[_0x5a6bf0(0xd7)]('x1',xScale(xMedian))[_0x5a6bf0(0xd7)]('y1',0x0)[_0x5a6bf0(0xd7)]('x2',xScale(xMedian))[_0x5a6bf0(0xd7)]('y2',height)[_0x5a6bf0(0x115)]('stroke',_0x5a6bf0(0xe5))[_0x5a6bf0(0x115)](_0x5a6bf0(0xf2),'4')['style']('display',medianLinesVisible?_0x5a6bf0(0xf0):_0x5a6bf0(0xfc)),yMedianLine=svg['append']('line')[_0x5a6bf0(0xd7)](_0x5a6bf0(0x127),'y-median')['attr']('x1',0x0)[_0x5a6bf0(0xd7)]('y1',yScale(yMedian))[_0x5a6bf0(0xd7)]('x2',width)[_0x5a6bf0(0xd7)]('y2',yScale(yMedian))['style'](_0x5a6bf0(0x110),_0x5a6bf0(0xe5))[_0x5a6bf0(0x115)](_0x5a6bf0(0xf2),'4')['style'](_0x5a6bf0(0xe2),medianLinesVisible?'block':_0x5a6bf0(0xfc));updateChart();function updateChart(){var _0x5eb049=_0x5a6bf0;xMetric=selectX[_0x5eb049(0xe1)]('value'),yMetric=selectY['property'](_0x5eb049(0xfb));var _0x5b73ee=document[_0x5eb049(0xf1)]('select-league')[_0x5eb049(0xfb)];_0x5b73ee!==_0x5eb049(0xd4)?(filteredData=data[_0x5eb049(0x10d)](function(_0x215589){var _0x5f046c=_0x5eb049;return _0x215589[header[_0x5f046c(0xe3)]('Top\x207\x20Leagues')]===_0x5b73ee;}),filteredNames=names[_0x5eb049(0x10d)](function(_0x3f803b,_0x4d2b2d){return data[_0x4d2b2d][header['indexOf']('Top\x207\x20Leagues')]===_0x5b73ee;})):(filteredData=data,filteredNames=names);xScale[_0x5eb049(0xe4)](d3[_0x5eb049(0x118)](filteredData,function(_0x1b6706){var _0x274a72=_0x5eb049;return _0x1b6706[header[_0x274a72(0xe3)](xMetric)];}))[_0x5eb049(0x102)](),yScale[_0x5eb049(0xe4)](d3[_0x5eb049(0x118)](filteredData,function(_0x94fbfb){var _0x44919f=_0x5eb049;return _0x94fbfb[header[_0x44919f(0xe3)](yMetric)];}))[_0x5eb049(0x102)]();if(medianLinesVisible){var _0x513d25=d3[_0x5eb049(0x11e)](filteredData,function(_0x28c18a){var _0x35ae60=_0x5eb049;return _0x28c18a[header[_0x35ae60(0xe3)](xMetric)];}),_0x3bc757=d3[_0x5eb049(0x11e)](filteredData,function(_0x2213e5){var _0x1c6583=_0x5eb049;return _0x2213e5[header[_0x1c6583(0xe3)](yMetric)];});xMedianLine['attr']('x1',xScale(_0x513d25))[_0x5eb049(0xd7)]('y1',0x0)[_0x5eb049(0xd7)]('x2',xScale(_0x513d25))[_0x5eb049(0xd7)]('y2',height)['style'](_0x5eb049(0xe2),_0x5eb049(0xf0)),yMedianLine[_0x5eb049(0xd7)]('x1',0x0)[_0x5eb049(0xd7)]('y1',yScale(_0x3bc757))[_0x5eb049(0xd7)]('x2',width)[_0x5eb049(0xd7)]('y2',yScale(_0x3bc757))[_0x5eb049(0x115)](_0x5eb049(0xe2),_0x5eb049(0xf0));}else xMedianLine[_0x5eb049(0x115)]('display',_0x5eb049(0xfc)),yMedianLine[_0x5eb049(0x115)](_0x5eb049(0xe2),_0x5eb049(0xfc));svg['select'](_0x5eb049(0x123))[_0x5eb049(0x105)](xMetric),svg[_0x5eb049(0x11b)]('.y-label')[_0x5eb049(0x105)](yMetric);var _0x4d3913=svg[_0x5eb049(0xde)](_0x5eb049(0xe8))[_0x5eb049(0xfd)](filteredData,function(_0x41adf2){return _0x41adf2[0x0];});_0x4d3913[_0x5eb049(0xdb)]()[_0x5eb049(0xce)](),_0x4d3913[_0x5eb049(0x103)]()[_0x5eb049(0xd1)](_0x5eb049(0xe8))[_0x5eb049(0xef)](_0x4d3913)[_0x5eb049(0xd7)]('cx',function(_0x1289c9){return xScale(_0x1289c9[header['indexOf'](xMetric)]);})[_0x5eb049(0xd7)]('cy',function(_0x5096e8){var _0x8f5066=_0x5eb049;return yScale(_0x5096e8[header[_0x8f5066(0xe3)](yMetric)]);})[_0x5eb049(0xd7)]('r',0x6)[_0x5eb049(0x115)](_0x5eb049(0xe0),function(_0x229e60){var _0x3c9347=_0x5eb049;return clickedCircles[_0x3c9347(0x124)](_0x229e60[0x0])?_0x3c9347(0xe5):'#4682B4B4';})[_0x5eb049(0xe6)](_0x5eb049(0xd0),![])[_0x5eb049(0xe6)](_0x5eb049(0x108),function(_0x415bcb){var _0x331a2f=_0x5eb049;return clickedCircles[_0x331a2f(0x124)](_0x415bcb[0x0]);})['on']('click',null)['on'](_0x5eb049(0x101),function(_0x3b4a98){var _0x4e7402=_0x5eb049;d3[_0x4e7402(0x11b)](this),tooltip[_0x4e7402(0xe9)]()[_0x4e7402(0xea)](0xc8)[_0x4e7402(0x115)](_0x4e7402(0x106),0.9),tooltip['html'](filteredNames[filteredData['indexOf'](_0x3b4a98)]+_0x4e7402(0xed)+xMetric+':\x20'+_0x3b4a98[header[_0x4e7402(0xe3)](xMetric)]+_0x4e7402(0xed)+yMetric+':\x20'+_0x3b4a98[header['indexOf'](yMetric)])[_0x4e7402(0x115)]('left',d3['event'][_0x4e7402(0xcf)]+0xa+'px')['style']('top',d3[_0x4e7402(0xf8)][_0x4e7402(0x10c)]-0x1c+'px');})['on'](_0x5eb049(0x125),function(_0x55d8ee){var _0xe5a94f=_0x5eb049,_0x512001=d3['select'](this),_0x3f100a=clickedCircles['indexOf'](_0x55d8ee[0x0]);!_0x512001['classed'](_0xe5a94f(0x108))&&_0x512001[_0xe5a94f(0xe6)](_0xe5a94f(0xdc),![])[_0xe5a94f(0x115)]('fill',_0xe5a94f(0xcc)),tooltip[_0xe5a94f(0xe9)]()['duration'](0x1f4)[_0xe5a94f(0x115)](_0xe5a94f(0x106),0x0);});var _0xef3ee7=filteredData[_0x5eb049(0x10d)](function(_0x25ab30){var _0x132499=_0x5eb049;return clickedCircles[_0x132499(0x124)](_0x25ab30[0x0]);}),_0x72f499=svg[_0x5eb049(0xde)]('.player-name')['data'](_0xef3ee7,function(_0x4c4037){return _0x4c4037[0x0];});_0x72f499[_0x5eb049(0xdb)]()['remove'](),_0x72f499[_0x5eb049(0x103)]()[_0x5eb049(0xd1)](_0x5eb049(0x105))[_0x5eb049(0xd7)](_0x5eb049(0x127),_0x5eb049(0xf6))[_0x5eb049(0xef)](_0x72f499)['attr']('x',function(_0x4dcbe5){var _0x1a5e64=_0x5eb049;return xScale(_0x4dcbe5[header[_0x1a5e64(0xe3)](xMetric)])-0x14;})['attr']('y',function(_0x14e5aa){return yScale(_0x14e5aa[header['indexOf'](yMetric)])+0x14;})[_0x5eb049(0x115)](_0x5eb049(0x10f),_0x5eb049(0xdf))['style'](_0x5eb049(0xc8),'12px')[_0x5eb049(0x105)](function(_0x282131){return filteredNames[filteredData['indexOf'](_0x282131)];}),svg[_0x5eb049(0x11b)](_0x5eb049(0x111))[_0x5eb049(0xe9)]()[_0x5eb049(0xea)](0x3e8)[_0x5eb049(0x104)](d3[_0x5eb049(0xf3)](xScale)[_0x5eb049(0x11a)](0x0)),svg[_0x5eb049(0x11b)]('.y-axis')['transition']()[_0x5eb049(0xea)](0x3e8)[_0x5eb049(0x104)](d3[_0x5eb049(0x11f)](yScale)[_0x5eb049(0x11a)](0x0));}function circleClick(_0x38b491,_0x1449b1){var _0x1d197d=_0x5a6bf0,_0x470eb1=d3['select'](this),_0x52fdb3=_0x38b491[0x0],_0x430d3c=clickedCircles[_0x1d197d(0xe3)](_0x52fdb3);_0x430d3c>-0x1?(_0x470eb1[_0x1d197d(0xe6)](_0x1d197d(0x108),![])['style']('fill',_0x1d197d(0xcc)),clickedCircles[_0x1d197d(0x10a)](_0x430d3c,0x1),svg[_0x1d197d(0x11b)](_0x1d197d(0x120)+_0x52fdb3)[_0x1d197d(0xce)]()):(_0x470eb1['classed'](_0x1d197d(0x108),!![])[_0x1d197d(0x115)](_0x1d197d(0xe0),_0x1d197d(0xe5)),clickedCircles[_0x1d197d(0xcb)](_0x52fdb3),svg[_0x1d197d(0xd1)]('text')['attr'](_0x1d197d(0x127),'player-name\x20player-name-'+_0x52fdb3)[_0x1d197d(0xd7)]('x',xScale(_0x38b491[header[_0x1d197d(0xe3)](xMetric)])-0x14)['attr']('y',yScale(_0x38b491[header['indexOf'](yMetric)])+0x14)[_0x1d197d(0x115)](_0x1d197d(0x10f),_0x1d197d(0xdf))['style']('font-size',_0x1d197d(0xff))[_0x1d197d(0x105)](filteredNames[filteredData[_0x1d197d(0xe3)](_0x38b491)])),updateClickedPlayerName(xMetric,yMetric),circles['on'](_0x1d197d(0xc7),function(_0x3e2a9e,_0x56605d){var _0x25beb5=_0x1d197d,_0x1f5916=d3[_0x25beb5(0x11b)](this),_0x551d39=filteredNames[_0x56605d],_0x3bd376=clickedCircles[_0x25beb5(0x124)](_0x551d39);_0x3bd376?(clickedCircles=clickedCircles['filter'](function(_0x210dd5){return _0x210dd5!==_0x551d39;}),_0x1f5916[_0x25beb5(0x115)](_0x25beb5(0xe0),'#4682B4B4')[_0x25beb5(0xe6)](_0x25beb5(0x108),![])):(clickedCircles['push'](_0x551d39),_0x1f5916[_0x25beb5(0x115)](_0x25beb5(0xe0),'red')[_0x25beb5(0xe6)](_0x25beb5(0x108),!![])),updateChart();}),circles['each'](function(_0x267c8e,_0x563fbd){var _0xfc2cba=_0x1d197d,_0x399dc9=filteredNames[_0x563fbd],_0xee9f26=clickedCircles[_0xfc2cba(0x124)](_0x399dc9);d3[_0xfc2cba(0x11b)](this)[_0xfc2cba(0xe6)]('clicked',_0xee9f26);});}var defaultSearchValue='Wolverhampton',defaultSearchIndex=filteredNames[_0x5a6bf0(0xe3)](defaultSearchValue);if(defaultSearchIndex!==-0x1){var defaultSearchDot=circles[_0x5a6bf0(0x10d)](function(_0x497d90,_0x2b3ff3){return _0x2b3ff3===defaultSearchIndex;});defaultSearchDot[_0x5a6bf0(0x109)](circleClick);}
+
+</script>
+
+<footer class="footer">
+   
+  <div class="google-play-container">
+
+  <a href='https://play.google.com/store/apps/details?id=com.datamb.datamb.webviewflutter&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'></a>
+<a href='https://apps.apple.com/app/datamb/id6456224067?l=en-GB'><img alt='Download on the App Store' src='https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg'></a></div>
+<div class="logo">
+    <img src="https://i.imgur.com/UurMbGS.png" alt="Wolverhampton stats and data visuals. Wolverhampton compared to top 7 league teams in 2024/25. Wolverhampton club data profile, team radar comparison and plot chart" />
+  </div>
+
+  <p class="description">DataMB</p>
+  <p class="info">© All Rights Reserved</p>
+  <hr class="divider" />
+  <div class="sub-footer">
+    <nav>
+      <a class="terms" target="_blank" href="https://datamb.football/privacy">Privacy</a>
+      <a class="privacy" target="_blank" href="mailto:datamb.football@gmail.com">Contact</a>
+      <a class="glossary" target="_blank" href="https://datamb.football/glossary">Glossary</a>
+    </nav>
+    <nav>
+      <a target="_blank" href="https://twitter.com/datamb_" class="twitter-link">
+        <svg width="23" height="22" fill="#000000" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+      </a>
+    </nav>
+  </div>
+</footer>
+<script data-cfasync="false" type="text/javascript" id="clever-core">
+  /* <![CDATA[ */
+      (function (document, window) {
+          var a, c = document.createElement("script"), f = window.frameElement;
+  
+          c.id = "CleverCoreLoader87060";
+          c.src = "https://scripts.cleverwebserver.com/182fe53e6c20be432aa0277667511ae2.js";
+  
+          c.async = !0;
+          c.type = "text/javascript";
+          c.setAttribute("data-target", window.name || (f && f.getAttribute("id")));
+          c.setAttribute("data-callback", "put-your-callback-function-here");
+          c.setAttribute("data-callback-url-click", "put-your-click-macro-here");
+          c.setAttribute("data-callback-url-view", "put-your-view-macro-here");
+          
+  
+          try {
+              a = parent.document.getElementsByTagName("script")[0] || document.getElementsByTagName("script")[0];
+          } catch (e) {
+              a = !1;
+          }
+  
+          a || (a = document.getElementsByTagName("head")[0] || document.getElementsByTagName("body")[0]);
+          a.parentNode.insertBefore(c, a);
+      })(document, window);
+  /* ]]> */
+  </script>
+  
+</body>
+</html>
+
+
