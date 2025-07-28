@@ -912,17 +912,51 @@ const _0x1fef6b=_0x4677;(function(_0x3c4da3,_0x58ad75){const _0x32cc09=_0x4677,_
     return text;
   }
 
+  // Function to check if player name has a number suffix and extract it
+  function extractPlayerNumber(playerName) {
+      const match = playerName.match(/(\d+)$/);
+      return match ? match[1] : null;
+  }
+
+  // Function to get display name (without number) and URL suffix
+  function getPlayerDisplayInfo(playerName) {
+      const number = extractPlayerNumber(playerName);
+      if (number) {
+          // Remove the number from the display name
+          const displayName = playerName.replace(/\d+$/, '');
+          return {
+              displayName: displayName,
+              urlSuffix: number
+          };
+      } else {
+          return {
+              displayName: playerName,
+              urlSuffix: null
+          };
+      }
+  }
+
   // Function to generate the link based on player's name and position
   function generatePlayerLink(player) {
-      const cleanedName = clean_and_replace(player[0]);
+      const playerInfo = getPlayerDisplayInfo(player[0]);
+      const cleanedName = clean_and_replace(playerInfo.displayName);
       const cleanedPosition = clean_and_replace(player[1]);
-      return `https://datamb.football/${cleanedName}_${player[1]}_stats/`;
+      
+      let url = `https://datamb.football/${cleanedName}_${player[1]}_stats/`;
+      
+      // Add number suffix to URL if player has a number
+      if (playerInfo.urlSuffix) {
+          url = url.replace('_stats/', `_stats${playerInfo.urlSuffix}/`);
+      }
+      
+      return url;
   }
 
   function filterPlayers() {
     const selectedTeam = 'Wolverhampton'; // Change to the desired team
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://datamb.football/database/playerforteam.csv', false); // false for synchronous request
+    const encoded = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL29obGl0bXliYWQvb2hsaXRteWJhZC5naXRodWIuaW8vbWFpbi9kYXRhYmFzZS9wbGF5ZXJmb3J0ZWFtLmNzdg==';
+    xhr.open('GET', atob(encoded), false);
     xhr.send(null);
     
     let csv = xhr.responseText;
@@ -970,7 +1004,10 @@ const _0x1fef6b=_0x4677;(function(_0x3c4da3,_0x58ad75){const _0x32cc09=_0x4677,_
                 const playerDiv = document.createElement('div');
                 const nameLink = document.createElement('a');
                 nameLink.href = generatePlayerLink(player); // Generate the player link
-                nameLink.textContent = player[0];
+                
+                // Get display name (without number if present)
+                const playerInfo = getPlayerDisplayInfo(player[0]);
+                nameLink.textContent = playerInfo.displayName;
                 const positionLink = document.createElement('a');
                 positionLink.textContent = player[1];
                 
